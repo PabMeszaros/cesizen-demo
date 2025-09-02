@@ -23,6 +23,9 @@ jobs:
       - name: Run container (test env)
         run: docker run -d -p 8081:80 --name webtest demo-site:${{ github.sha }}
 
+      - name: Check smoke.sh exists
+        run: ls -l tests/
+
       - name: Smoke tests
         run: |
           chmod +x tests/smoke.sh
