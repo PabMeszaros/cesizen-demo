@@ -27,9 +27,7 @@ jobs:
         run: ls -l tests/
 
       - name: Smoke tests
-        run: |
-          chmod +x tests/smoke.sh
-          ./tests/smoke.sh http://localhost:8081
+        run: bash tests/smoke.sh http://localhost:8081
 
       - name: Show logs (aide en cas d'échec)
         if: always()
