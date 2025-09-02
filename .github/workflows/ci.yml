@@ -1,0 +1,57 @@
+name: CI-CD Demo
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t demo-site:${{ github.sha }} .
+
+      - name: Run container (test env)
+        run: docker run -d -p 8081:80 --name webtest demo-site:${{ github.sha }}
+
+      - name: Smoke tests
+        run: |
+          chmod +x tests/smoke.sh
+          ./tests/smoke.sh http://localhost:8081
+
+      - name: Show logs (aide en cas d'échec)
+        if: always()
+        run: docker logs webtest || true
+
+      - name: Clean up
+        if: always()
+        run: docker stop webtest && docker rm webtest
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Upload static site as artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

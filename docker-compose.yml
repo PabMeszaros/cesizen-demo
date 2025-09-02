@@ -1,0 +1,14 @@
+services:
+  # Environnement de DEV : rapide, live (volume monté)
+  web-dev:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./site:/usr/share/nginx/html:ro
+
+  # Environnement de TEST : image "réelle" construite depuis le Dockerfile
+  web-test:
+    build: .
+    ports:
+      - "8081:80"
