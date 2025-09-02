@@ -32,17 +32,24 @@ jobs:
         if: always()
         run: docker logs webtest || true
 
+      - name: Copy static site for deploy
+        if: always()
+        run: docker cp webtest:/usr/share/nginx/html ./site
+
       - name: Clean up
         if: always()
-        run: docker stop webtest && docker rm webtest
+        run: |
+          docker stop webtest || true
+          docker rm webtest || true
 
   deploy:
     needs: test
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
